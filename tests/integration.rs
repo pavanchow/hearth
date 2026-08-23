@@ -92,6 +92,51 @@ fn unknown_path_returns_404() {
 }
 
 #[test]
+fn connection_cap_rejects_beyond_the_limit() {
+    let dir = std::env::temp_dir().join(format!("hearth_it_cap_{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    drop(listener);
+    let d = dir.to_str().unwrap().to_string();
+    thread::spawn(move || {
+        let router = build_router(&d);
+        let _ = Server::new(router).with_max_connections(2).listen(&format!("127.0.0.1:{port}"));
+    });
+
+    // Hold two connections open without sending a request. They occupy both
+    // slots (each server thread blocks reading the request), so the cap is full.
+    let mut held: Vec<TcpStream> = Vec::new();
+    for _ in 0..50 {
+        if let Ok(s) = TcpStream::connect(("127.0.0.1", port)) {
+            held.push(s);
+            break;
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
+    while held.len() < 2 {
+        held.push(TcpStream::connect(("127.0.0.1", port)).unwrap());
+    }
+    thread::sleep(Duration::from_millis(300));
+
+    // A third connection past the cap must be closed immediately: the server
+    // drops it, so the client reads a clean EOF (Ok(0)) rather than blocking.
+    let mut third = TcpStream::connect(("127.0.0.1", port)).unwrap();
+    third.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+    let mut buf = [0u8; 16];
+    let r = third.read(&mut buf);
+    assert!(matches!(r, Ok(0)), "third connection past the cap should be closed, got {r:?}");
+
+    // Free a slot, and a fresh connection is served again.
+    drop(held.pop());
+    thread::sleep(Duration::from_millis(300));
+    let resp = send_raw(port, "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    assert!(resp.starts_with("HTTP/1.1 200 OK\r\n"), "server should serve after a slot frees: {resp}");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 fn malformed_request_gets_400_and_server_survives() {
     let dir = std::env::temp_dir().join(format!("hearth_it_400_{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();

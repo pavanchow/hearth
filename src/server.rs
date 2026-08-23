@@ -1,5 +1,6 @@
 use std::io::{BufReader, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -10,16 +11,35 @@ use crate::router::Router;
 
 pub struct Server {
     router: Arc<Router>,
+    max_connections: usize,
 }
 
 const READ_TIMEOUT: Duration = Duration::from_secs(30);
 const MAX_REQUESTS_PER_CONNECTION: usize = 1000;
+/// Cap on concurrent connections. Past this, new connections are closed
+/// immediately so a flood cannot exhaust threads or file descriptors.
+const MAX_CONNECTIONS: usize = 1024;
+
+/// Decrements the live-connection counter when a connection's thread ends.
+struct ConnGuard(Arc<AtomicUsize>);
+impl Drop for ConnGuard {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::SeqCst);
+    }
+}
 
 impl Server {
     pub fn new(router: Router) -> Server {
         Server {
             router: Arc::new(router),
+            max_connections: MAX_CONNECTIONS,
         }
+    }
+
+    /// Override the concurrent-connection cap.
+    pub fn with_max_connections(mut self, n: usize) -> Server {
+        self.max_connections = n;
+        self
     }
 
     /// Bind and serve forever, one thread per connection. A panic or error
@@ -27,13 +47,23 @@ impl Server {
     /// down the listener or any other connection.
     pub fn listen(&self, addr: &str) -> std::io::Result<()> {
         let listener = TcpListener::bind(addr)?;
+        let active = Arc::new(AtomicUsize::new(0));
         for incoming in listener.incoming() {
             let stream = match incoming {
                 Ok(s) => s,
                 Err(_) => continue,
             };
+            // Bound concurrency. Past the cap, drop the stream (a hard close)
+            // rather than spawn an unbounded thread.
+            if active.fetch_add(1, Ordering::SeqCst) >= self.max_connections {
+                active.fetch_sub(1, Ordering::SeqCst);
+                drop(stream);
+                continue;
+            }
+            let guard = ConnGuard(Arc::clone(&active));
             let router = Arc::clone(&self.router);
             thread::spawn(move || {
+                let _guard = guard; // held for the life of the connection
                 let _ = handle_connection(stream, router);
             });
         }
