@@ -1,0 +1,21 @@
+[package]
+name = "hearth"
+version = "0.1.0"
+edition = "2021"
+description = "An HTTP/1.1 web server built from scratch on raw sockets, no hyper, no framework"
+authors = ["Pavan Nallamothu"]
+license = "MIT"
+
+[[bin]]
+name = "hearth"
+path = "src/main.rs"
+
+[lib]
+name = "hearth"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+opt-level = 3
