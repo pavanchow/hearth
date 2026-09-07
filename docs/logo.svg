@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Hearth logo">
+  <defs>
+    <linearGradient id="hthT" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ef7238"/>
+      <stop offset="1" stop-color="#b23a09"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#hthT)"/>
+  <path d="M64 22 C58 40 46 46 46 68 C46 85 58 100 64 100 C70 100 82 85 82 68 C82 55 73 50 71 42 C69 51 64 51 64 44 C64 37 66 30 64 22 Z" fill="#fff"/>
+  <path d="M64 54 C61 62 55 66 55 76 C55 85 60 92 64 92 C68 92 73 85 73 76 C73 68 68 66 66 60 C65 66 62 65 62 61 C62 58 64 56 64 54 Z" fill="#ef7238"/>
+</svg>

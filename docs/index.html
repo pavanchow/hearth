@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
   <title>Hearth: an HTTP server in Rust built on raw sockets, no framework</title>
   <meta name="description" content="Hearth is an HTTP server in Rust built from scratch on std::net, with no hyper and no web framework. Watch the whole path from TCP bytes to a parsed request to a response, live in your browser.">
   <meta name="author" content="Pavan Nallamothu (pavanchow)">
@@ -104,6 +105,13 @@
 
     footer{padding:64px 0;border-top:1px solid var(--line);text-align:center;color:var(--muted)}
     footer .name{color:var(--ink);font-weight:600}
+    .howto{max-width:680px;margin:26px auto 0;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+    .howto summary{cursor:pointer;padding:14px 18px;font:600 14px var(--mono);color:var(--ink);list-style:none}
+    .howto summary::-webkit-details-marker{display:none}
+    .howto summary::before{content:"▸";margin-right:9px;color:var(--accent)}
+    .howto[open] summary::before{content:"▾"}
+    .howto .body2{padding:0 18px 16px;color:var(--muted);font-size:15px}
+    .howto .body2 b{color:var(--ink)}
   </style>
 <link rel="author" href="https://github.com/pavanchow">
 <script type="application/ld+json">
@@ -121,6 +129,7 @@
   </div></nav>
 
   <div class="hero">
+    <img src="logo.svg" alt="Hearth logo" width="72" height="72" style="display:block;margin:0 auto 18px">
     <p class="eyebrow">TCP bytes in, an HTTP response out</p>
     <h1>The server that shows<br>you the whole path.</h1>
     <p class="sub">Hearth is an HTTP server in Rust built from scratch on raw sockets, no hyper and no web framework. Every step from a TCP byte stream to a parsed request to a written response lives in code you can actually read.</p>
@@ -138,6 +147,11 @@
       <div id="out" class="out"></div>
       <p class="caption">this is a JS port of the exact parsing rules in src/request.rs, the same request line, header, and body logic Hearth runs on every real connection</p>
     </div>
+
+    <details class="howto">
+      <summary>How to use this playground</summary>
+      <div class="body2">Pick a sample request from the chips, or type a raw HTTP/1.1 request into the box yourself, then hit <b>Parse</b>. Hearth breaks it into a method, path, query, version, headers, and body, exactly the way the Rust server does off a socket. Try the malformed samples (no leading slash, bad version) to see the parser reject them with a typed error instead of crashing. It runs the same parsing rules as <b>src/request.rs</b>, ported to JavaScript.</div>
+    </details>
   </div>
 
   <section>

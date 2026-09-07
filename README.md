@@ -1,3 +1,5 @@
+<img src="docs/logo.svg" alt="Hearth logo" width="96">
+
 **Hearth is an HTTP server in Rust, built from scratch on raw sockets, no hyper, no framework.**
 
 Hearth parses HTTP/1.1 requests directly off a `TcpStream`, writes responses byte for byte, routes them to handlers or a static file directory, and does it all in a codebase small enough to read start to finish. Most servers hide the protocol behind a framework. Hearth shows you the whole path: a TCP byte stream in, a parsed request, a dispatched handler, a written response out.
