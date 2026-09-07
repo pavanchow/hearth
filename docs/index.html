@@ -197,6 +197,28 @@ pub struct Request {<br>
       <div class="r"><b>/echo</b><p>A built-in echo route that returns the request body back, useful for poking at the server with curl.</p></div>
       <div class="r"><b>cargo test</b><p>Unit tests for the parser, the response writer, the router, and path-traversal defense, plus an integration test that starts the real server and talks to it over a socket.</p></div>
     </div>
+    <pre class="snip"><span class="c"># start the server, then talk to it with curl (real captured output)</span>
+$ hearth serve --dir ./public --port 8080
+
+$ curl -si http://127.0.0.1:8080/health
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 15
+Connection: keep-alive
+
+{"status":"ok"}
+
+$ curl -si -X POST -d hello http://127.0.0.1:8080/echo
+HTTP/1.1 200 OK
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 5
+Connection: keep-alive
+
+hello
+
+<span class="c"># a path-traversal attempt cannot escape the served root</span>
+$ curl -si http://127.0.0.1:8080/../../etc/passwd
+HTTP/1.1 404 Not Found</pre>
   </section>
 
   <noscript>
