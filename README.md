@@ -6,6 +6,8 @@ Hearth is an HTTP/1.1 server written from scratch in Rust on `std::net`, with no
 
 **[Live demo](https://pavanchow.github.io/hearth/)** · MIT licensed · pure Rust, no framework
 
+Built from scratch by [Pavan Nallamothu](https://pavanchow.github.io/) ([LinkedIn](https://www.linkedin.com/in/pavanchow/), [GitHub](https://github.com/pavanchow)).
+
 ## What it is
 
 - An HTTP/1.1 request parser over `std::net`: request line, headers, and a `Content-Length` or chunked body, with hard caps on line and header size so a hostile client cannot exhaust memory.
